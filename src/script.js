@@ -18,42 +18,88 @@ const scene = new THREE.Scene()
  * Galaxy
  */
 const galaxyParametrs = {};
-galaxyParametrs.count = 1000;
-galaxyParametrs.size = 0.02;
+galaxyParametrs.count = 30000;
+galaxyParametrs.size = 0.03;
+galaxyParametrs.radius = 6;
+galaxyParametrs.branches = 3;
+galaxyParametrs.spin = 3;
+galaxyParametrs.randomnes = 1;
+galaxyParametrs.randomPower = 8;
+galaxyParametrs.insideColor = '#bbff00';
+galaxyParametrs.outsideColor = '#4f4ff3';
 
-const galaxyGenerate = () => {
-    // Geometry
-    const galaxyGeometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(galaxyParametrs.count * 3);
+let geometry = null;
+let material = null;
+let points = null;
 
-    for(let i = 0; i < galaxyParametrs.count * 3; i++) {
-        const i3 = i * 3;
-        positions[i3] = (Math.random() - 0.5) * 5;
-        positions[i3 + 1] = (Math.random() - 0.5) * 5;
-        positions[i3 + 2] = (Math.random() - 0.5) * 5;
-
-        galaxyGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-        // Material
-        const material = new THREE.PointsMaterial({
-            size: galaxyParametrs.size,
-            sizeAttenuation: true,
-            depthWrith: false,
-            // color: 'white',
-            // transparent: true,
-            // alphaMap: texture,
-            // alphaTest: 0.001,
-            blending: THREE.AdditiveBlending,
-            // vertexColors: true,    
-        });
-
-        // Points
-        const points = new THREE.Points(galaxyGeometry, material);
-        scene.add(points);
+const galaxyGenerate = () => 
+{
+    if(points !== null) 
+    {
+        geometry.dispose();
+        material.dispose();
+        scene.remove(points);
     }
+
+    // Geometry
+    geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(galaxyParametrs.count * 3);
+    const colors = new Float32Array(galaxyParametrs.count * 3);
+
+    const colorInside = new THREE.Color(galaxyParametrs.insideColor);
+    const colorOutside = new THREE.Color(galaxyParametrs.outsideColor);
+
+
+    for(let i = 0; i < galaxyParametrs.count * 3; i++) 
+    {
+        const i3 = i * 3;
+        // Positions
+        const radius = Math.random() * galaxyParametrs.radius;
+        const spingAngle = radius * galaxyParametrs.spin * galaxyParametrs.branches;
+        const branchAngle = ((i % galaxyParametrs.branches) / galaxyParametrs.branches) * (Math.PI * 2);
+        const randomX = Math.pow(Math.random(), galaxyParametrs.randomPower) * (Math.random() < 0.5 ? 1 : -1) * galaxyParametrs.randomnes;
+        const randomY = Math.pow(Math.random(), galaxyParametrs.randomPower) * (Math.random() < 0.5 ? 1 : -1) * galaxyParametrs.randomnes;
+        const randomZ = Math.pow(Math.random(), galaxyParametrs.randomPower) * (Math.random() < 0.5 ? 1 : -1) * galaxyParametrs.randomnes;
+
+        positions[i3] = Math.cos(branchAngle + spingAngle) * radius + randomX;
+        positions[i3 + 1] = (Math.cos(branchAngle + spingAngle) * radius) - 1 + randomY;
+        positions[i3 + 2] = Math.sin(branchAngle + spingAngle) * radius + randomZ;
+
+        // Colors
+        const mixedColor = colorInside.clone();
+        mixedColor.lerp(colorOutside, radius / galaxyParametrs.radius)
+
+        colors[i3] = mixedColor.r;
+        colors[i3 + 1] = Math.random();
+        colors[i3 + 2] = mixedColor.b;
+    }
+    
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    // Material
+    material = new THREE.PointsMaterial({
+        size: galaxyParametrs.size,
+        sizeAttenuation: true,
+        depthWrith: false,
+        blending: THREE.AdditiveBlending,
+        vertexColors: true,
+    });
+
+    // Points
+    points = new THREE.Points(geometry, material);
+    scene.add(points);
 }
 galaxyGenerate();
-
+gui.add(galaxyParametrs, 'count').min(100).max(100000).step(100).onFinishChange(galaxyGenerate);
+gui.add(galaxyParametrs, 'size').min(0.001).max(0.1).step(0.001).onFinishChange(galaxyGenerate);
+gui.add(galaxyParametrs, 'radius').min(0.1).max(20).step(0.1).onFinishChange(galaxyGenerate);
+gui.add(galaxyParametrs, 'branches').min(1).max(20).step(1).onFinishChange(galaxyGenerate);
+gui.add(galaxyParametrs, 'spin').min(-5).max(5).step(0.01).onFinishChange(galaxyGenerate);
+gui.add(galaxyParametrs, 'randomnes').min(0).max(2).step(0.01).onFinishChange(galaxyGenerate);
+gui.add(galaxyParametrs, 'randomPower').min(1).max(10).step(0.001).onFinishChange(galaxyGenerate);
+gui.addColor(galaxyParametrs, 'insideColor').onFinishChange(galaxyGenerate);
+gui.addColor(galaxyParametrs, 'outsideColor').onFinishChange(galaxyGenerate);
 
 
 const galaxyMaterial = new THREE.PointsMaterial();
@@ -111,6 +157,8 @@ const clock = new THREE.Clock()
 const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime()
+    //Update Galaxy
+    
 
     // Update controls
     controls.update()
