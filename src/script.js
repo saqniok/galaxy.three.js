@@ -19,10 +19,11 @@ const scene = new THREE.Scene()
  */
 
 const textureLoader = new THREE.TextureLoader();
-const particlesTexture = textureLoader.load('texture/4.png');
+const particlesTexture = textureLoader.load('texture/5.png');
 /**
  * Galaxy
  */
+let galaxy = new THREE.Group();
 const galaxyParametrs = {};
 galaxyParametrs.count = 30000;
 galaxyParametrs.size = 0.02;
@@ -40,6 +41,7 @@ let points = null;
 
 const galaxyGenerate = () => 
 {
+    galaxy.clear();
     if(points !== null) 
     {
         geometry.dispose();
@@ -97,7 +99,7 @@ const galaxyGenerate = () =>
 
     // Points
     points = new THREE.Points(geometry, material);
-    scene.add(points);
+    galaxy.add(points);
 }
 galaxyGenerate();
 gui.add(galaxyParametrs, 'count').min(100).max(100000).step(100).onFinishChange(galaxyGenerate);
@@ -163,10 +165,19 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
  */
 const clock = new THREE.Clock()
 
+scene.add(galaxy);
+
 const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime()
     //Update Galaxy
+    
+    if(galaxy) {
+        galaxy.rotation.x = Math.cos(elapsedTime * 0.1);
+        galaxy.rotation.y = Math.cos(elapsedTime * 0.1) - 1;
+        galaxy.position.z = Math.sin(elapsedTime * 0.1);
+    }
+
     
 
     // Update controls
