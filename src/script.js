@@ -15,16 +15,22 @@ const canvas = document.querySelector('canvas.webgl')
 const scene = new THREE.Scene()
 
 /**
+ * Loader texture
+ */
+
+const textureLoader = new THREE.TextureLoader();
+const particlesTexture = textureLoader.load('texture/4.png');
+/**
  * Galaxy
  */
 const galaxyParametrs = {};
 galaxyParametrs.count = 30000;
-galaxyParametrs.size = 0.03;
-galaxyParametrs.radius = 6;
-galaxyParametrs.branches = 3;
-galaxyParametrs.spin = 3;
-galaxyParametrs.randomnes = 1;
-galaxyParametrs.randomPower = 8;
+galaxyParametrs.size = 0.02;
+galaxyParametrs.radius = 2;
+galaxyParametrs.branches = 5;
+galaxyParametrs.spin = 1;
+galaxyParametrs.randomnes = 1.5;
+galaxyParametrs.randomPower = 5;
 galaxyParametrs.insideColor = '#bbff00';
 galaxyParametrs.outsideColor = '#4f4ff3';
 
@@ -79,9 +85,12 @@ const galaxyGenerate = () =>
 
     // Material
     material = new THREE.PointsMaterial({
-        size: galaxyParametrs.size,
         sizeAttenuation: true,
-        depthWrith: false,
+        alphaMap: particlesTexture,
+        transparent: true,
+        size: galaxyParametrs.size,
+        depthTest: false,
+        // depthWrith: false,
         blending: THREE.AdditiveBlending,
         vertexColors: true,
     });
@@ -102,7 +111,7 @@ gui.addColor(galaxyParametrs, 'insideColor').onFinishChange(galaxyGenerate);
 gui.addColor(galaxyParametrs, 'outsideColor').onFinishChange(galaxyGenerate);
 
 
-const galaxyMaterial = new THREE.PointsMaterial();
+// const galaxyMaterial = new THREE.PointsMaterial();
 /**
  * Sizes
  */
